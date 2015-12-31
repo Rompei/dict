@@ -17,7 +17,7 @@ go build
 Or download executable file at [drone.io](https://drone.io/github.com/Rompei/dict/files)
 
 
-On shell congure file
+On shell configure file
 
 ```
 alias dict="./path/to/binary -t <Dest-language> -f <Src-language> <Src>"
