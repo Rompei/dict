@@ -79,7 +79,6 @@ Options
 
 	result, err := request(makeURL(args[0], *from, *to))
 	if err != nil {
-		fmt.Println(err)
 		fmt.Println("Not found.")
 	} else {
 		fmt.Println(result)
