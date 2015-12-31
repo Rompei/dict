@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -43,17 +44,20 @@ func request(url string) (result string, err error) {
 		return
 	}
 
-	res := make([]string, len(response.Tuc))
-	count := 0
-	for i, v := range response.Tuc {
-		if v.Phrase.Text != "" {
-			res[i] = v.Phrase.Text
-			count = i
+	if lenTuc := len(response.Tuc); lenTuc != 0 {
+		res := make([]string, lenTuc)
+		count := 0
+		for i, v := range response.Tuc {
+			if v.Phrase.Text != "" {
+				res[i] = v.Phrase.Text
+				count = i
+			}
 		}
+		result = strings.Join(res[:count+1], ",")
+		return
 	}
-	result = strings.Join(res[:count+1], ",")
 
-	return
+	return "", errors.New("Notfound")
 }
 
 func main() {
