@@ -54,10 +54,12 @@ func request(url string) (result string, err error) {
 			}
 		}
 		result = strings.Join(res[:count+1], ",")
-		return
 	}
 
-	return "", errors.New("Notfound")
+	if result == "" {
+		return "", errors.New("Notfound")
+	}
+	return
 }
 
 func main() {
