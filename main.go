@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"runtime"
 	"strings"
 )
 
@@ -92,6 +93,8 @@ func parseArgs() (string, *Options) {
 }
 
 func main() {
+
+	runtime.GOMAXPROCS(runtime.NumCPU() - 1)
 
 	src, opts := parseArgs()
 
