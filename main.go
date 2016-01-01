@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
+	"github.com/jessevdk/go-flags"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -26,24 +26,28 @@ func makeURL(src, srcLang, destLang string) string {
 }
 
 // Send request.
-func request(url string) (result string, err error) {
+func request(url string, resultCh chan ResultItem) {
 	resp, err := http.Get(url)
 	if err != nil {
+		resultCh <- ResultItem{Err: err}
 		return
 	}
 
 	defer resp.Body.Close()
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		resultCh <- ResultItem{Err: err}
 		return
 	}
 
 	var response Response
 	err = json.Unmarshal(b, &response)
 	if err != nil {
+		resultCh <- ResultItem{Err: errors.New("Not found")}
 		return
 	}
 
+	var result string
 	if lenTuc := len(response.Tuc); lenTuc != 0 {
 		res := make([]string, lenTuc)
 		count := 0
@@ -57,38 +61,68 @@ func request(url string) (result string, err error) {
 	}
 
 	if result == "" {
-		return "", errors.New("Notfound")
+		resultCh <- ResultItem{Err: errors.New("Not found")}
+		return
 	}
-	return
+
+	resultCh <- ResultItem{
+		Result: result,
+		Lang:   response.Dest,
+	}
+}
+
+func parseArgs() (string, *Options) {
+	var opts Options
+	parser := flags.NewParser(&opts, flags.Default)
+	parser.Name = "dict"
+	parser.Usage = "[OPTIONS] SRC"
+
+	args, err := parser.Parse()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if opts.From == "" || len(opts.To) == 0 || len(args) != 1 {
+		parser.WriteHelp(os.Stdout)
+		os.Exit(1)
+	}
+
+	return args[0], &opts
+
 }
 
 func main() {
 
-	// Setting help message.
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, `dict [OPTIONS] <src>
-Options
-`)
-		flag.PrintDefaults()
+	src, opts := parseArgs()
+
+	toLen := len(opts.To)
+	resultCh := make(chan ResultItem, toLen)
+	for _, v := range opts.To {
+		go request(makeURL(src, opts.From, v), resultCh)
 	}
 
-	// If this option is exist, translate to Japanese from English.
-	from := flag.String("f", "", "From")
-	to := flag.String("t", "", "To")
-	flag.Parse()
-	args := flag.Args()
-
-	if *to == "" || *from == "" || args == nil || len(args) != 1 {
-		flag.Usage()
-		os.Exit(1)
+	for i := 0; i < toLen; i++ {
+		result := <-resultCh
+		if result.Err != nil {
+			fmt.Println(result.Err)
+			continue
+		} else {
+			fmt.Printf("%s:%s\n", result.Lang, result.Result)
+		}
 	}
+}
 
-	result, err := request(makeURL(args[0], *from, *to))
-	if err != nil {
-		fmt.Println("Not found.")
-	} else {
-		fmt.Println(result)
-	}
+// Options is command line options
+type Options struct {
+	From string   `short:"f" logn:"from" description:"Source labguage"`
+	To   []string `short:"t" long:"to" description:"Destination languages"`
+}
+
+// ResultItem is object used to message passing.
+type ResultItem struct {
+	Lang   string
+	Err    error
+	Result string
 }
 
 // Response object.
