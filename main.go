@@ -120,6 +120,7 @@ func main() {
 			fmt.Printf("%s:%s\n", result.Lang, result.Result)
 		}
 	}
+	close(resultCh)
 }
 
 // Options is command line options
