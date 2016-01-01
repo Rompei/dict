@@ -26,7 +26,13 @@ alias dict="./path/to/binary -t <Dest-language> -f <Src-language> <Src>"
 Put command, for example
 
 ```
-dict -t ja -f en cat
+$ ./dict -f en -t kor -t jpn -t rus -t ind -t swe -t tha cat
+$ ko:고양이,고양잇과
+$ ru:кошка,кот,кат,пизда,ко́шка,блевать,изрыгать,кошачий,парень
+$ th:แมว,วิฬาร์,maeaew,wílaa,อาเจียน,อ้วก
+$ sv:katt,kattdjur,fitta,mutta,slida,snippa,vagina,kisse,katta,kille,spy,tamkatt,typ
+$ id:kucing,cat,meong
+$ ja:猫,ネコ,ねこ,にゃあにゃあ,neko,にゃにゃ,にゃんにゃん,ぬこ,カト,キャット
 ```
 
 Language code is available right here [ISO 639-3](https://en.wikipedia.org/wiki/List_of_ISO_639-3_codes)
