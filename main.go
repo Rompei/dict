@@ -44,6 +44,8 @@ func request(url string, resultCh chan ResultItem) {
 	var response Response
 	err = json.Unmarshal(b, &response)
 	if err != nil {
+		// API returns HTML, when langage was not found.
+		// So this case, returns not found error.
 		resultCh <- ResultItem{Err: errors.New("Not found")}
 		return
 	}
@@ -66,12 +68,14 @@ func request(url string, resultCh chan ResultItem) {
 		return
 	}
 
+	// Sending result through Channel.
 	resultCh <- ResultItem{
 		Result: result,
 		Lang:   response.Dest,
 	}
 }
 
+// parseArgs parses command line argument and command line options.
 func parseArgs() (string, *Options) {
 	var opts Options
 	parser := flags.NewParser(&opts, flags.Default)
@@ -89,26 +93,29 @@ func parseArgs() (string, *Options) {
 	}
 
 	return args[0], &opts
-
 }
 
 func main() {
 
+	// Define GOMAXPROCS as the number of CPU - 1
 	runtime.GOMAXPROCS(runtime.NumCPU() - 1)
 
+	// Parsing command line options.
 	src, opts := parseArgs()
 
 	toLen := len(opts.To)
 	resultCh := make(chan ResultItem, toLen)
 	for _, v := range opts.To {
+
+		// Send requests asynchronously.
 		go request(makeURL(src, opts.From, v), resultCh)
 	}
 
+	// Collect results.
 	for i := 0; i < toLen; i++ {
 		result := <-resultCh
 		if result.Err != nil {
 			fmt.Println(result.Err)
-			continue
 		} else {
 			fmt.Printf("%s:%s\n", result.Lang, result.Result)
 		}
