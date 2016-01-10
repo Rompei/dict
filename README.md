@@ -6,6 +6,8 @@
 
 Dictionary on command line interface implemented with Golang.
 
+[![Sample](https://gyazo.com/f6a5ea8720e45bcc53be9d31155d2643)](https://gyazo.com/f6a5ea8720e45bcc53be9d31155d2643)
+
 ##How to use it
 
 ```
